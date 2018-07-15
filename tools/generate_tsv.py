@@ -71,67 +71,67 @@ def load_image_ids(split_name):
     elif split_name == 'referit_train':
       image_dir = './data/referit/ImageCLEF/images/'
       image_list = load_int_list('./data/referit/split/referit_train_imlist.txt')
-      for image_id in image_list:
-        filepath = os.path.join(image_dir, '%d.jpg' % image_id)
-        split.append((filepath,image_id)) 
+      split = make_split(image_dir, image_list) 
     elif split_name == 'referit_val':
       image_dir = './data/referit/ImageCLEF/images/'
       image_list = load_int_list('./data/referit/split/referit_val_imlist.txt')
-      for image_id in image_list:
-        filepath = os.path.join(image_dir, '%d.jpg' % image_id)
-        split.append((filepath,image_id)) 
+      split = make_split(image_dir, image_list) 
     elif split_name == 'referit_trainval':
       image_dir = './data/referit/ImageCLEF/images/'
       image_list = load_int_list('./data/referit/split/referit_trainval_imlist.txt')
-      for image_id in image_list:
-        filepath = os.path.join(image_dir, '%d.jpg' % image_id)
-        split.append((filepath,image_id)) 
+      split = make_split(image_dir, image_list) 
     elif split_name == 'referit_test':
       image_dir = './data/referit/ImageCLEF/images/'
       image_list = load_int_list('./data/referit/split/referit_test_imlist.txt')
-      for image_id in image_list:
-        filepath = os.path.join(image_dir, '%d.jpg' % image_id)
-        split.append((filepath,image_id)) 
+      split = make_split(image_dir, image_list) 
     elif split_name == 'referit_trainval':
       image_dir = './data/referit/ImageCLEF/images/'
       image_list = load_int_list('./data/referit/split/referit_trainval_imlist.txt')
-      for image_id in image_list:
-        filepath = os.path.join(image_dir, '%d.jpg' % image_id)
-        split.append((filepath,image_id)) 
-    elif split_name == 'vizwiz_train':
-      image_dir = './data/vizwiz/Images/'
-      for file_name in os.listdir(image_dir):
-        filepath = os.path.join(image_dir, file_name)
-        file_info = file_name.split('_')
-        if file_info[1] == 'train':
-          image_id = int(file_info[2].split('.')[0])
-          split.append((filepath,image_id)) 
-    elif split_name == 'vizwiz_val':
-      image_dir = './data/vizwiz/Images/'
-      for file_name in os.listdir(image_dir):
-        filepath = os.path.join(image_dir, file_name)
-        file_info = file_name.split('_')
-        if file_info[1] == 'val':
-          image_id = int(file_info[2].split('.')[0])
-          split.append((filepath,image_id)) 
-    elif split_name == 'vizwiz_test':
-      image_dir = './data/vizwiz/Images/'
-      for file_name in os.listdir(image_dir):
-        filepath = os.path.join(image_dir, file_name)
-        file_info = file_name.split('_')
-        if file_info[1] == 'test':
-          image_id = int(file_info[2].split('.')[0])
-          split.append((filepath,image_id)) 
+      split = make_split(image_dir, image_list) 
+    elif split_name == 'openimages_train':
+      image_dir = './data/openimages/train/'
+      image_list = load_openimage_vrd_list('./data/openimages/challenge-2018-train-vrd.csv')
+      split = make_split(image_dir, image_list) 
+    elif split_name == 'openimages_test':
+      image_dir = './data/openimages/test/'
+      # image_list = load_openimage_vrd_list('./data/openimages/challenge-2018-train-vrd.csv')
+      split = make_split(image_dir, image_list) 
     else:
       print 'Unknown split'
 
     return split
+
+def make_split(image_dir, image_list):
+    split = []
+    for image_id in image_list:
+        filepath = os.path.join(image_dir, '%s.jpg' % str(image_id))
+        if not os.path.isfile(filepath):
+            continue
+        split.append((filepath,image_id)) 
+    return split
+
 
 def load_int_list(filename):
     with open(filename, 'r') as f:
         str_list = f.readlines()
     int_list = [int(s[:-1]) for s in str_list]
     return int_list
+
+def load_openimage_vrd_list(filename):
+    data_dir = '/data/openimages/'
+    field_names = ['ImageID', 'LabelName1', 'LabelName2', 
+                  'XMin1', 'XMax1', 'YMin1', 'YMax1', 
+                  'XMin2', 'XMax2', 'YMin2', 'YMax2', 'RelationshipLabel']
+
+    image_ids = []
+    with open(filename) as file:
+        reader = csv.DictReader(file, fieldnames=field_names)
+        header = next(reader)
+        
+        for item in reader:
+            image_ids.append(item['ImageID'])
+            
+    return list(set(image_ids))
 
 def validate_referit_image(image_id, im_file, image):
     dataroot = os.path.dirname(os.path.dirname(im_file))
@@ -223,13 +223,13 @@ def parse_args():
     
 def generate_tsv(split, gpu_id, prototxt, weights, image_ids, outfile):
     # First check if file exists, and if it is complete
-    wanted_ids = set([int(image_id[1]) for image_id in image_ids])
+    wanted_ids = set([image_id[1] for image_id in image_ids])
     found_ids = set()
     if os.path.exists(outfile):
         with open(outfile) as tsvfile:
             reader = csv.DictReader(tsvfile, delimiter='\t', fieldnames = FIELDNAMES)
             for item in reader:
-                found_ids.add(int(item['image_id']))
+                found_ids.add(item['image_id'])
     missing = wanted_ids - found_ids
     if len(missing) == 0:
         print 'GPU {:d}: already completed {:d}'.format(gpu_id, len(image_ids))
@@ -244,7 +244,7 @@ def generate_tsv(split, gpu_id, prototxt, weights, image_ids, outfile):
             _t = {'misc' : Timer()}
             count = 0
             for im_file,image_id in image_ids:
-                if int(image_id) in missing:
+                if image_id in missing:
                     _t['misc'].tic()
                     writer.writerow(get_detections_from_im(split, net, im_file, image_id))
                     _t['misc'].toc()
@@ -320,3 +320,5 @@ if __name__ == '__main__':
                   
     if len(gpus) > 1:
         merge_tsvs(args.outfile, len(gpus))
+    elif len(gpus) == 1:
+        os.rename(outfile, args.outfile)
