@@ -92,9 +92,10 @@ def load_image_ids(split_name):
       image_dir = './data/openimages/train/'
       image_list = load_openimage_vrd_list('./data/openimages/challenge-2018-train-vrd.csv')
       split = make_split(image_dir, image_list) 
-    elif split_name == 'openimages_test':
-      image_dir = './data/openimages/test/'
-      # image_list = load_openimage_vrd_list('./data/openimages/challenge-2018-train-vrd.csv')
+    elif split_name == 'openimages_challenge':
+      image_dir = './data/openimages/challenge2018_test/'
+      file_list = os.listdir(image_dir)
+      image_list = [file.split('.')[0] for file in file_list]
       split = make_split(image_dir, image_list) 
     else:
       print 'Unknown split'
