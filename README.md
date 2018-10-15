@@ -1,3 +1,21 @@
+
+You can extract bottom-up-attention features with additional datasets: flickr30k, referit, openimages, and visual relationship detection (VRD) dataset.
+
+**Usage**
+    
+    ./tools/generate_tsv.py --def models/vg/ResNet-101/faster_rcnn_end2end_final/test.prototxt --cfg experiments/cfgs/faster_rcnn_end2end_resnet.yml --net data/faster_rcnn_models/resnet101_faster_rcnn_final.caffemodel --split {DatasetName} --out {output tsv file path}
+
+{DatasetName} can be "flickr30k", "referit_train", "referit_val", "referit_trainval", "referit_test", "referit_trainval", "openimages_train", "openimages_challenge", "vrd_train", or "vrd_test". If you need to split flickr30k dataset, [create_split.py](/data/flickr30k/create_split.py) will help you.
+
+    cd data/flickr30k/
+    python create_split.py --file {flickr tsv file path} --split {dataSplits.mat file path}
+
+The "dataSplits.mat" file can be downloaeded at <https://github.com/princeton-vl/structured-matching/tree/master/src/eval>
+
+The following is the original README.
+
+<hr/>
+
 # bottom-up-attention
 
 This code implements a bottom-up attention model, based on multi-gpu training of Faster R-CNN with ResNet-101, using object and attribute annotations from [Visual Genome](http://visualgenome.org/).
