@@ -32,7 +32,7 @@ import json
 csv.field_size_limit(sys.maxsize)
 
 
-FIELDNAMES = ['image_id', 'image_w','image_h','num_boxes', 'boxes', 'features']
+FIELDNAMES = ['image_id', 'image_w','image_h','num_boxes', 'boxes', 'features', 'confidence']
 
 # Settings for the number of features per image. To re-create pretrained features with 36 features
 # per image, set both values to 36. 
@@ -197,7 +197,8 @@ def get_detections_from_im(split, net, im_file, image_id, conf_thresh=0.2):
         'image_w': np.size(im, 1),
         'num_boxes' : len(keep_boxes),
         'boxes': base64.b64encode(cls_boxes[keep_boxes]),
-        'features': base64.b64encode(pool5[keep_boxes])
+        'features': base64.b64encode(pool5[keep_boxes]),
+        'confidence': base64.b64encode(max_conf[keep_boxes])
     }   
 
 
