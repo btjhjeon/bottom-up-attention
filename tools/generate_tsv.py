@@ -32,12 +32,10 @@ import json
 csv.field_size_limit(sys.maxsize)
 
 
-FIELDNAMES = ['image_id', 'image_w','image_h','num_boxes', 'boxes', 'features', 'confidence']
+FIELDNAMES = ['image_id', 'image_w','image_h','num_boxes', 'boxes', 'features', 'confidence', 'class']
 
 # Settings for the number of features per image. To re-create pretrained features with 36 features
 # per image, set both values to 36. 
-MIN_BOXES = 10
-MAX_BOXES = 100
 
 def load_image_ids(split_name):
     ''' Load a list of (path,image_id tuples). Modify this to suit your data locations. '''
@@ -158,7 +156,7 @@ def validate_referit_image(image_id, im_file, image):
     return image
 
 
-def get_detections_from_im(split, net, im_file, image_id, conf_thresh=0.2):
+def get_detections_from_im(split, net, im_file, image_id, minboxes, maxboxes, conf_thresh):
 
     im = cv2.imread(im_file)
     if im is None:  # video stream/video file
@@ -175,6 +173,7 @@ def get_detections_from_im(split, net, im_file, image_id, conf_thresh=0.2):
 
     cls_boxes = rois[:, 1:5] / im_scales[0]
     cls_prob = net.blobs['cls_prob'].data
+    cls_idx = net.blobs['predicted_cls'].data
     pool5 = net.blobs['pool5_flat'].data
 
     # Keep only the best detections
@@ -186,10 +185,10 @@ def get_detections_from_im(split, net, im_file, image_id, conf_thresh=0.2):
         max_conf[keep] = np.where(cls_scores[keep] > max_conf[keep], cls_scores[keep], max_conf[keep])
 
     keep_boxes = np.where(max_conf >= conf_thresh)[0]
-    if len(keep_boxes) < MIN_BOXES:
-        keep_boxes = np.argsort(max_conf)[::-1][:MIN_BOXES]
-    elif len(keep_boxes) > MAX_BOXES:
-        keep_boxes = np.argsort(max_conf)[::-1][:MAX_BOXES]
+    if len(keep_boxes) < minboxes:
+        keep_boxes = np.argsort(max_conf)[::-1][:minboxes]
+    elif len(keep_boxes) > maxboxes:
+        keep_boxes = np.argsort(max_conf)[::-1][:maxboxes]
    
     return {
         'image_id': image_id,
@@ -198,7 +197,8 @@ def get_detections_from_im(split, net, im_file, image_id, conf_thresh=0.2):
         'num_boxes' : len(keep_boxes),
         'boxes': base64.b64encode(cls_boxes[keep_boxes]),
         'features': base64.b64encode(pool5[keep_boxes]),
-        'confidence': base64.b64encode(max_conf[keep_boxes])
+        'confidence': base64.b64encode(max_conf[keep_boxes]),
+        'class': base64.b64encode(cls_idx[keep_boxes])
     }   
 
 
@@ -226,6 +226,15 @@ def parse_args():
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
+    parser.add_argument('--min', dest='minboxes',
+                        help='the minimum number of boxes',
+                        default=10, type=int)
+    parser.add_argument('--max', dest='maxboxes',
+                        help='the maximum number of boxes',
+                        default=100, type=int)
+    parser.add_argument('--thr', dest='threshold',
+                        help='box confidnece threshold',
+                        default=0.2, type=float)
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -235,7 +244,7 @@ def parse_args():
     return args
 
     
-def generate_tsv(split, gpu_id, prototxt, weights, image_ids, outfile):
+def generate_tsv(split, gpu_id, prototxt, weights, image_ids, outfile, minboxes, maxboxes, threshold):
     # First check if file exists, and if it is complete
     wanted_ids = set([image_id[1] for image_id in image_ids])
     found_ids = set()
@@ -260,7 +269,7 @@ def generate_tsv(split, gpu_id, prototxt, weights, image_ids, outfile):
             for im_file,image_id in image_ids:
                 if image_id in missing:
                     _t['misc'].tic()
-                    writer.writerow(get_detections_from_im(split, net, im_file, image_id))
+                    writer.writerow(get_detections_from_im(split, net, im_file, image_id, minboxes, maxboxes, threshold))
                     _t['misc'].toc()
                     if (count % 100) == 0:
                         print 'GPU {:d}: {:d}/{:d} {:.3f}s (projected finish: {:.2f} hours)' \
@@ -325,7 +334,8 @@ if __name__ == '__main__':
     for i,gpu_id in enumerate(gpus):
         outfile = '%s.%d' % (args.outfile, gpu_id)
         p = Process(target=generate_tsv,
-                    args=(args.data_split, gpu_id, args.prototxt, args.caffemodel, image_ids[i], outfile))
+                    args=(args.data_split, gpu_id, args.prototxt, args.caffemodel, image_ids[i],
+                          outfile, args.minboxes, args.maxboxes, args.threshold))
         p.daemon = True
         p.start()
         procs.append(p)
