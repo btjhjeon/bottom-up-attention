@@ -84,10 +84,27 @@ def load_image_ids(split_name):
       image_dir = './data/referit/ImageCLEF/images/'
       image_list = load_int_list('./data/referit/split/referit_test_imlist.txt')
       split = make_split(image_dir, image_list) 
-    elif split_name == 'referit_trainval':
-      image_dir = './data/referit/ImageCLEF/images/'
-      image_list = load_int_list('./data/referit/split/referit_trainval_imlist.txt')
-      split = make_split(image_dir, image_list) 
+    elif split_name == 'clevr_train':
+      image_dir = './data/CLEVR/CLEVR_v1.0/images/train/'
+      split = []
+      for file_name in os.listdir(image_dir):
+        filepath = os.path.join(image_dir, file_name)
+        image_id = file_name.split('.')[0]
+        split.append((filepath , image_id))
+    elif split_name == 'clevr_val':
+      image_dir = './data/CLEVR/CLEVR_v1.0/images/val/'
+      split = []
+      for file_name in os.listdir(image_dir):
+        filepath = os.path.join(image_dir, file_name)
+        image_id = file_name.split('.')[0]
+        split.append((filepath , image_id))
+    elif split_name == 'clevr_test':
+      image_dir = './data/CLEVR/CLEVR_v1.0/images/test/'
+      split = []
+      for file_name in os.listdir(image_dir):
+        filepath = os.path.join(image_dir, file_name)
+        image_id = file_name.split('.')[0]
+        split.append((filepath , image_id))
     elif split_name == 'openimages_train':
       image_dir = './data/openimages/train/'
       image_list = load_openimage_vrd_list('./data/openimages/challenge-2018-train-vrd.csv')
