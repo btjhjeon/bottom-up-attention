@@ -287,8 +287,8 @@ def generate_tsv(split, gpu_id, prototxt, weights, image_ids, outfile):
                     
 
 
-def merge_tsvs(file_name, num_gpus):
-    test = ['%s.%d' % (file_name, i) for i in range(num_gpus)]
+def merge_tsvs(file_name, gpus):
+    test = ['%s.%d' % (file_name, gpu_id) for gpu_id in gpus]
 
     outfile = file_name
     with open(outfile, 'ab') as tsvfile:
@@ -349,6 +349,6 @@ if __name__ == '__main__':
         p.join()            
                   
     if len(gpus) > 1:
-        merge_tsvs(args.outfile, len(gpus))
+        merge_tsvs(args.outfile, gpus)
     elif len(gpus) == 1:
         os.rename(outfile, args.outfile)
