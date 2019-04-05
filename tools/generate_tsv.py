@@ -89,21 +89,21 @@ def load_image_ids(split_name):
       split = []
       for file_name in os.listdir(image_dir):
         filepath = os.path.join(image_dir, file_name)
-        image_id = file_name.split('.')[0]
+        image_id = int(file_name.split('.')[0].split('_')[-1])
         split.append((filepath , image_id))
     elif split_name == 'clevr_val':
       image_dir = './data/CLEVR/CLEVR_v1.0/images/val/'
       split = []
       for file_name in os.listdir(image_dir):
         filepath = os.path.join(image_dir, file_name)
-        image_id = file_name.split('.')[0]
+        image_id = int(file_name.split('.')[0].split('_')[-1])
         split.append((filepath , image_id))
     elif split_name == 'clevr_test':
       image_dir = './data/CLEVR/CLEVR_v1.0/images/test/'
       split = []
       for file_name in os.listdir(image_dir):
         filepath = os.path.join(image_dir, file_name)
-        image_id = file_name.split('.')[0]
+        image_id = int(file_name.split('.')[0].split('_')[-1])
         split.append((filepath , image_id))
     elif split_name == 'openimages_train':
       image_dir = './data/openimages/train/'
