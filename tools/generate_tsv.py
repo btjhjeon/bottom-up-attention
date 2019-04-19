@@ -129,7 +129,7 @@ def load_image_ids(split_name):
     elif split_name == 'gqa':
       image_dir = './data/GQA/images/'
       file_list = os.listdir(image_dir)
-      image_list = [int(file.split('.')[0]) for file in file_list]
+      image_list = [file.split('.')[0] for file in file_list]
       path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
       split = list(zip(path_list, image_list))
     else:
