@@ -7049,6 +7049,26 @@ layer {
 
 layer {
     bottom: "res5c"
+    top: "pool5_no_relu"
+    name: "pool5_no_relu"
+    type: "Pooling"
+    pooling_param {
+        global_pooling: true
+        pool: AVE
+    }
+}
+layer {
+    bottom: "pool5_no_relu"
+    top: "pool5_no_relu_flat"
+    name: "pool5_no_relu_flat"
+    type: "Flatten"
+    flatten_param {
+        axis: 1
+    }
+}
+
+layer {
+    bottom: "res5c"
     top: "res5c"
     name: "res5c_relu"
     type: "ReLU"

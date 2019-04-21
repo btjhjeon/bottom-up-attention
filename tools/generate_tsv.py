@@ -198,7 +198,7 @@ def get_detections_from_im(split, net, im_file, image_id, conf_thresh=0.2):
 
     cls_boxes = rois[:, 1:5] / im_scales[0]
     cls_prob = net.blobs['cls_prob'].data
-    pool5 = net.blobs['pool5_flat'].data
+    pool5 = net.blobs['pool5_no_relu_flat'].data
 
     # Keep only the best detections
     max_conf = np.zeros((rois.shape[0]))
