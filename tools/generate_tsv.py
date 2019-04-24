@@ -132,6 +132,18 @@ def load_image_ids(split_name):
       image_list = [file.split('.')[0] for file in file_list]
       path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
       split = list(zip(path_list, image_list))
+    elif split_name == 'tdiuc_train':
+      image_dir = './data/TDIUC/Images/train2014/'
+      file_list = os.listdir(image_dir)
+      image_list = [int(file.split('.')[0].split('_')[-1]) for file in file_list]
+      path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
+      split = list(zip(path_list, image_list))
+    elif split_name == 'tdiuc_val':
+      image_dir = './data/TDIUC/Images/val2014/'
+      file_list = os.listdir(image_dir)
+      image_list = [int(file.split('.')[0].split('_')[-1]) for file in file_list]
+      path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
+      split = list(zip(path_list, image_list))
     else:
       print 'Unknown split'
 
