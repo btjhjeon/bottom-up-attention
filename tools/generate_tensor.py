@@ -47,7 +47,7 @@ def parse_args():
     """
     parser = argparse.ArgumentParser(description='Generate bbox output from a Fast R-CNN network')
     parser.add_argument('--gpu', dest='gpu_id', help='GPU id to use',
-                        default='0', type=str)
+                        default=0, type=int)
     parser.add_argument('--in', dest='infile',
                         help='input filepath',
                         default=None, type=str)
