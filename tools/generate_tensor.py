@@ -149,7 +149,7 @@ if __name__ == '__main__':
     random.seed(10)
     
     caffe.init_log()
-    caffe.log('Using devices %s' % str(gpus))
+    caffe.log('Using devices %s' % str(gpu_id))
 
     if args.num_box is not None:
         MIN_BOXES = args.num_box
