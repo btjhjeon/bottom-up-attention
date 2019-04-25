@@ -125,7 +125,7 @@ def generate_tensor(gpu_id, prototxt, weights, infile, outfile):
     result = get_detections_from_im(net, infile)
 
     outdir = os.path.dirname(outfile)
-    if not os.path.exists(outdir):
+    if not os.path.exists(outdir) and outdir != '':
         os.makedirs(outdir)
     torch.save(result, outfile)
 
