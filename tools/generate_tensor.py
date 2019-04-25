@@ -57,6 +57,9 @@ def parse_args():
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
+    parser.add_argument('--num_box', dest='num_box',
+                        help='the number of extracted boxes, default=adaptive(10~100)',
+                        default=None, type=int)
 
     if len(sys.argv) == 1:
         parser.print_help()
