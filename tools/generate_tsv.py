@@ -260,6 +260,9 @@ def parse_args():
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
+    parser.add_argument('--num_box', dest='num_box',
+                        help='the number of extracted boxes, default=adaptive(10~100)',
+                        default=None, type=int)
 
     if len(sys.argv) == 1:
         parser.print_help()
@@ -354,8 +357,12 @@ if __name__ == '__main__':
     
     caffe.init_log()
     caffe.log('Using devices %s' % str(gpus))
-    procs = []    
-    
+    procs = []
+
+    if args.num_box is not None:
+        MIN_BOXES = args.num_box
+        MAX_BOXES = args.num_box
+
     for i,gpu_id in enumerate(gpus):
         outfile = '%s.%d' % (args.outfile, gpu_id)
         p = Process(target=generate_tsv,
