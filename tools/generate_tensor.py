@@ -103,12 +103,12 @@ def get_detections_from_im(net, im_file, conf_thresh=0.2):
         keep_boxes = np.argsort(max_conf)[::-1][:MAX_BOXES]
    
     return {
-        'image_path': im_file,
-        'image_h': np.size(im, 0),
-        'image_w': np.size(im, 1),
-        'num_boxes' : len(keep_boxes),
-        'boxes': torch.tensor(cls_boxes[keep_boxes]),
-        'features': torch.tensor(pool5[keep_boxes])
+        'image_path': im_file,                          # str
+        'image_h': np.size(im, 0),                      # int
+        'image_w': np.size(im, 1),                      # int
+        'num_boxes' : len(keep_boxes),                  # int
+        'boxes': torch.tensor(cls_boxes[keep_boxes]),   # pytorch tensor (b x 4)
+        'features': torch.tensor(pool5[keep_boxes])     # pytorch tensor (b x 2048)
     }   
 
     
@@ -146,11 +146,7 @@ if __name__ == '__main__':
     pprint.pprint(cfg)
     assert cfg.TEST.HAS_RPN
 
-    image_ids = load_image_ids(args.data_split)
     random.seed(10)
-    random.shuffle(image_ids)
-    # Split image ids between gpus
-    image_ids = [image_ids[i::len(gpus)] for i in range(len(gpus))]
     
     caffe.init_log()
     caffe.log('Using devices %s' % str(gpus))
