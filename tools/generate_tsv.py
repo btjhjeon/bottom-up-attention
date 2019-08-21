@@ -211,7 +211,7 @@ def get_detections_from_im(split, net, im_file, image_id, conf_thresh=0.2):
     im = cv2.imread(im_file)
     if im is None:  # video stream/video file
         _, im = cv2.VideoCapture(im_file).read()
-    if 'referit' in split:
+    if split is not None and 'referit' in split:
         im = validate_referit_image(image_id, im_file, im)
 
     scores, boxes, attr_scores, rel_scores = im_detect(net, im)
