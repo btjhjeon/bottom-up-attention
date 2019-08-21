@@ -33,121 +33,134 @@ csv.field_size_limit(sys.maxsize)
 
 
 FIELDNAMES = ['image_id', 'image_w','image_h','num_boxes', 'boxes', 'features']
+SUPPORT_EXT = ['.jpg', '.png', '.gif']
 
 # Settings for the number of features per image. To re-create pretrained features with 36 features
 # per image, set both values to 36. 
 MIN_BOXES = 10
 MAX_BOXES = 100
 
-def load_image_ids(split_name):
+def load_image_ids(split_name=None, image_dir=None):
     ''' Load a list of (path,image_id tuples). Modify this to suit your data locations. '''
+    assert split_name is not None or image_dir is not None
+
     split = []
-    if split_name == 'coco_val2014':
-      with open('./data/coco/annotations/instances_val2014.json') as f:
-        data = json.load(f)
-        for item in data['images']:
-          image_id = int(item['id'])
-          filepath = os.path.join('./data/coco/images/val2014/', item['file_name'])
-          split.append((filepath,image_id))
-    elif split_name == 'coco_test2015':
-      with open('./data/coco/annotations/image_info_test2015.json') as f:
-        data = json.load(f)
-        for item in data['images']:
-          image_id = int(item['id'])
-          filepath = os.path.join('./data/coco/images/test2015/', item['file_name'])
-          split.append((filepath,image_id))
-    elif split_name == 'genome':
-      with open('./data/visualgenome/image_data.json') as f:
-        for item in json.load(f):
-          image_id = int(item['image_id'])
-          filepath = os.path.join('./data/visualgenome/', item['url'].split('rak248/')[-1])
-          split.append((filepath,image_id))     
-    elif split_name == 'flickr30k':
-      image_dir = './data/flickr30k/images/'
-      for file_name in os.listdir(image_dir):
-        filepath = os.path.join(image_dir, file_name)
-        image_id = int(file_name.split('.')[0])
-        split.append((filepath,image_id)) 
-    elif split_name == 'referit_train':
-      image_dir = './data/referit/ImageCLEF/images/'
-      image_list = load_int_list('./data/referit/split/referit_train_imlist.txt')
-      split = make_split(image_dir, image_list) 
-    elif split_name == 'referit_val':
-      image_dir = './data/referit/ImageCLEF/images/'
-      image_list = load_int_list('./data/referit/split/referit_val_imlist.txt')
-      split = make_split(image_dir, image_list) 
-    elif split_name == 'referit_trainval':
-      image_dir = './data/referit/ImageCLEF/images/'
-      image_list = load_int_list('./data/referit/split/referit_trainval_imlist.txt')
-      split = make_split(image_dir, image_list) 
-    elif split_name == 'referit_test':
-      image_dir = './data/referit/ImageCLEF/images/'
-      image_list = load_int_list('./data/referit/split/referit_test_imlist.txt')
-      split = make_split(image_dir, image_list) 
-    elif split_name == 'clevr_train':
-      image_dir = './data/CLEVR/CLEVR_v1.0/images/train/'
-      split = []
-      for file_name in os.listdir(image_dir):
-        filepath = os.path.join(image_dir, file_name)
-        image_id = int(file_name.split('.')[0].split('_')[-1])
-        split.append((filepath , image_id))
-    elif split_name == 'clevr_val':
-      image_dir = './data/CLEVR/CLEVR_v1.0/images/val/'
-      split = []
-      for file_name in os.listdir(image_dir):
-        filepath = os.path.join(image_dir, file_name)
-        image_id = int(file_name.split('.')[0].split('_')[-1])
-        split.append((filepath , image_id))
-    elif split_name == 'clevr_test':
-      image_dir = './data/CLEVR/CLEVR_v1.0/images/test/'
-      split = []
-      for file_name in os.listdir(image_dir):
-        filepath = os.path.join(image_dir, file_name)
-        image_id = int(file_name.split('.')[0].split('_')[-1])
-        split.append((filepath , image_id))
-    elif split_name == 'openimages_train':
-      image_dir = './data/openimages/train/'
-      image_list = load_openimage_vrd_list('./data/openimages/challenge-2018-train-vrd.csv')
-      split = make_split(image_dir, image_list) 
-    elif split_name == 'openimages_challenge':
-      image_dir = './data/openimages/challenge2018_test/'
-      file_list = os.listdir(image_dir)
-      image_list = [file.split('.')[0] for file in file_list]
-      split = make_split(image_dir, image_list) 
-    elif split_name == 'vrd_train':
-      image_dir = './data/vrd/sg_dataset/sg_train_images/'
-      file_list = os.listdir(image_dir)
-      image_list = [file.split('.')[0] for file in file_list]
-      path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
-      split = list(zip(path_list, image_list))
-    elif split_name == 'vrd_test':
-      image_dir = './data/vrd/sg_dataset/sg_test_images/'
-      file_list = os.listdir(image_dir)
-      image_list = [file.split('.')[0] for file in file_list]
-      path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
-      split = list(zip(path_list, image_list))
-    elif split_name == 'gqa':
-      image_dir = './data/GQA/images/'
-      file_list = os.listdir(image_dir)
-      image_list = [file.split('.')[0] for file in file_list]
-      path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
-      split = list(zip(path_list, image_list))
-    elif split_name == 'tdiuc_train':
-      image_dir = './data/TDIUC/Images/train2014/'
-      file_list = os.listdir(image_dir)
-      image_list = [int(file.split('.')[0].split('_')[-1]) for file in file_list]
-      path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
-      split = list(zip(path_list, image_list))
-    elif split_name == 'tdiuc_val':
-      image_dir = './data/TDIUC/Images/val2014/'
-      file_list = os.listdir(image_dir)
-      image_list = [int(file.split('.')[0].split('_')[-1]) for file in file_list]
-      path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
-      split = list(zip(path_list, image_list))
-    else:
-      print 'Unknown split'
+    if split_name is not None:
+        if split_name == 'coco_val2014':
+          with open('./data/coco/annotations/instances_val2014.json') as f:
+            data = json.load(f)
+            for item in data['images']:
+              image_id = int(item['id'])
+              filepath = os.path.join('./data/coco/images/val2014/', item['file_name'])
+              split.append((filepath,image_id))
+        elif split_name == 'coco_test2015':
+          with open('./data/coco/annotations/image_info_test2015.json') as f:
+            data = json.load(f)
+            for item in data['images']:
+              image_id = int(item['id'])
+              filepath = os.path.join('./data/coco/images/test2015/', item['file_name'])
+              split.append((filepath,image_id))
+        elif split_name == 'genome':
+          with open('./data/visualgenome/image_data.json') as f:
+            for item in json.load(f):
+              image_id = int(item['image_id'])
+              filepath = os.path.join('./data/visualgenome/', item['url'].split('rak248/')[-1])
+              split.append((filepath,image_id))
+        elif split_name == 'flickr30k':
+          image_dir = './data/flickr30k/images/'
+          for file_name in os.listdir(image_dir):
+            filepath = os.path.join(image_dir, file_name)
+            image_id = int(file_name.split('.')[0])
+            split.append((filepath,image_id))
+        elif split_name == 'referit_train':
+          image_dir = './data/referit/ImageCLEF/images/'
+          image_list = load_int_list('./data/referit/split/referit_train_imlist.txt')
+          split = make_split(image_dir, image_list)
+        elif split_name == 'referit_val':
+          image_dir = './data/referit/ImageCLEF/images/'
+          image_list = load_int_list('./data/referit/split/referit_val_imlist.txt')
+          split = make_split(image_dir, image_list)
+        elif split_name == 'referit_trainval':
+          image_dir = './data/referit/ImageCLEF/images/'
+          image_list = load_int_list('./data/referit/split/referit_trainval_imlist.txt')
+          split = make_split(image_dir, image_list)
+        elif split_name == 'referit_test':
+          image_dir = './data/referit/ImageCLEF/images/'
+          image_list = load_int_list('./data/referit/split/referit_test_imlist.txt')
+          split = make_split(image_dir, image_list)
+        elif split_name == 'clevr_train':
+          image_dir = './data/CLEVR/CLEVR_v1.0/images/train/'
+          split = []
+          for file_name in os.listdir(image_dir):
+            filepath = os.path.join(image_dir, file_name)
+            image_id = int(file_name.split('.')[0].split('_')[-1])
+            split.append((filepath , image_id))
+        elif split_name == 'clevr_val':
+          image_dir = './data/CLEVR/CLEVR_v1.0/images/val/'
+          split = []
+          for file_name in os.listdir(image_dir):
+            filepath = os.path.join(image_dir, file_name)
+            image_id = int(file_name.split('.')[0].split('_')[-1])
+            split.append((filepath , image_id))
+        elif split_name == 'clevr_test':
+          image_dir = './data/CLEVR/CLEVR_v1.0/images/test/'
+          split = []
+          for file_name in os.listdir(image_dir):
+            filepath = os.path.join(image_dir, file_name)
+            image_id = int(file_name.split('.')[0].split('_')[-1])
+            split.append((filepath , image_id))
+        elif split_name == 'openimages_train':
+          image_dir = './data/openimages/train/'
+          image_list = load_openimage_vrd_list('./data/openimages/challenge-2018-train-vrd.csv')
+          split = make_split(image_dir, image_list)
+        elif split_name == 'openimages_challenge':
+          image_dir = './data/openimages/challenge2018_test/'
+          file_list = os.listdir(image_dir)
+          image_list = [file.split('.')[0] for file in file_list]
+          split = make_split(image_dir, image_list)
+        elif split_name == 'vrd_train':
+          image_dir = './data/vrd/sg_dataset/sg_train_images/'
+          file_list = os.listdir(image_dir)
+          image_list = [file.split('.')[0] for file in file_list]
+          path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
+          split = list(zip(path_list, image_list))
+        elif split_name == 'vrd_test':
+          image_dir = './data/vrd/sg_dataset/sg_test_images/'
+          file_list = os.listdir(image_dir)
+          image_list = [file.split('.')[0] for file in file_list]
+          path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
+          split = list(zip(path_list, image_list))
+        elif split_name == 'gqa':
+          image_dir = './data/GQA/images/'
+          file_list = os.listdir(image_dir)
+          image_list = [file.split('.')[0] for file in file_list]
+          path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
+          split = list(zip(path_list, image_list))
+        elif split_name == 'tdiuc_train':
+          image_dir = './data/TDIUC/Images/train2014/'
+          file_list = os.listdir(image_dir)
+          image_list = [int(file.split('.')[0].split('_')[-1]) for file in file_list]
+          path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
+          split = list(zip(path_list, image_list))
+        elif split_name == 'tdiuc_val':
+          image_dir = './data/TDIUC/Images/val2014/'
+          file_list = os.listdir(image_dir)
+          image_list = [int(file.split('.')[0].split('_')[-1]) for file in file_list]
+          path_list = [os.path.join(image_dir, file_name) for file_name in file_list]
+          split = list(zip(path_list, image_list))
+        else:
+          print 'Unknown split'
+    elif image_dir is not None:
+        file_list = os.listdir(image_dir)
+        for file in file_list:
+            image_id, file_extension = os.path.splitext(file)
+            if file_extension not in SUPPORT_EXT:
+                continue
+            path = os.path.join(image_dir, file)
+            split.append((path, image_id))
 
     return split
+
 
 def make_split(image_dir, image_list):
     split = []
@@ -256,7 +269,10 @@ def parse_args():
                         help='optional config file', default=None, type=str)
     parser.add_argument('--split', dest='data_split',
                         help='dataset to use',
-                        default='karpathy_train', type=str)
+                        default=None, type=str)
+    parser.add_argument('--folder', dest='folder',
+                        help='dir path containing images',
+                        default=None, type=str)
     parser.add_argument('--set', dest='set_cfgs',
                         help='set config keys', default=None,
                         nargs=argparse.REMAINDER)
@@ -349,7 +365,7 @@ if __name__ == '__main__':
     pprint.pprint(cfg)
     assert cfg.TEST.HAS_RPN
 
-    image_ids = load_image_ids(args.data_split)
+    image_ids = load_image_ids(args.data_split, args.folder)
     random.seed(10)
     random.shuffle(image_ids)
     # Split image ids between gpus
